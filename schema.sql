@@ -1,9 +1,0 @@
-create extension if not exists pgcrypto;
-create table if not exists users(id uuid primary key default gen_random_uuid(),username text unique not null,role text not null check(role in ('student','teacher')),password_hash text,display_name text,created_at timestamptz not null default now());
-create table if not exists questions(id uuid primary key default gen_random_uuid(),topic text not null,level text not null default 'Lanjut',question_text text not null,options jsonb not null,answer_index int,explanation text,source text,created_by uuid references users(id) on delete set null,created_at timestamptz not null default now());
-create table if not exists exams(id uuid primary key default gen_random_uuid(),title text not null,duration_minutes int not null default 25,question_count int not null default 25,status text not null default 'published',created_by uuid references users(id),created_at timestamptz not null default now());
-create table if not exists exam_questions(exam_id uuid references exams(id) on delete cascade,question_id uuid references questions(id) on delete cascade,position int not null,primary key(exam_id,question_id));
-create table if not exists attempts(id uuid primary key default gen_random_uuid(),exam_id uuid references exams(id),user_id uuid references users(id),started_at timestamptz not null default now(),ends_at timestamptz not null,status text not null default 'in_progress',submitted_at timestamptz,score numeric(6,2),correct_count int);
-create table if not exists attempt_answers(attempt_id uuid references attempts(id) on delete cascade,question_id uuid references questions(id),answer jsonb,is_doubt boolean not null default false,saved_at timestamptz not null default now(),is_correct boolean,primary key(attempt_id,question_id));
-create index if not exists idx_attempt_user on attempts(user_id,started_at desc);
-create index if not exists idx_questions_topic on questions(topic);
